@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.3/axios.min.js"></script>
+    <title>To Do List</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;    
+        }
+        #titlecard {
+            background-color: lightyellow;
+        }
+        #todolistcard {            
+            background-color: lightslategrey;    
+        }
+        #completedtaskcard {
+            background-color: lightsteelblue;
+        }
+    </style>
+</head>
+<body>    
+    <div class="container">
+        <div class="card" id="titlecard">
+            <div class="card-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <h1 class="text-center">ADD YOUR TODAY'S TASK HERE</h1>
+                        </div>
+                    </div>
+                </div>        
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card" id="formcard">
+            <div class="card-body">
+                <form>
+                    <div class="row" style="margin-top: 5px;">
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <label class="form-label" for="taskname">Task Name:</label>
+                            </div>
+                            <input type="text" class="form-control" id="taskname" placeholder="Add Your Task Here">
+                        </div>
+                    </div>
+                            
+                    <div class="row" style="margin-top: 5px;">
+                        <div class="col">
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <label for="description" class="form-label">Description:</label>
+                                </div>
+                                <input type="text" id="description" class="form-control" placeholder="Description of your task">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" >
+                        <div class="col">
+                            <button id="submit" class="btn btn-lg btn-outline-success" style="margin-top: 5px; width: 100%;">SUBMIT</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>               
+    </div> 
+    
+    <div class="container">
+        <div class="card" id="todolistcard">
+            <div class="card-body ">
+                <div class="card-title">
+                    <h2>TO DO LIST:</h2>
+                </div>
+                <ul class="list-group" id="toDoremains">     
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card" id="completedtaskcard">
+            <div class="card-body">
+                <div class="card-title">
+                    <h2>COMPLETED TASK:</h2>
+                </div>
+                <ul class="list-group" id="toDocompleted">
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+<script>
+let button = document.getElementById("submit");
+let ul_toDoremains = document.getElementById("toDoremains");
+let ul_toDocompleted = document.getElementById("toDocompleted");
+
+// Event listeners
+button.addEventListener("click", savedata);
+window.addEventListener("load", loaddata);
+ul_toDoremains.addEventListener("click", removedata);
+ul_toDoremains.addEventListener("click", movedata);
+ul_toDocompleted.addEventListener("click", deletetask);
+
+
+// Save data to server
+async function savedata(event) {
+    event.preventDefault();
+        let taskName = document.getElementById("taskname").value;
+        let taskDescription = document.getElementById("description").value;
+        let data = {
+            taskName,
+            taskDescription
+        };
+        ul_toDoremains.innerHTML = "";
+        const response = await axios.post("http://localhost:3000/addtask", data);
+        const tasklist = response.data;
+        tasklist.forEach((task)=>{
+            let li = document.createElement("li");
+            li.className = "list-group-item";
+            li.appendChild(
+                document.createTextNode(`Task is ${task.name}. Description of the task is ${task.description}.`)
+            );
+            li.setAttribute("dataid", `${task.id}`);
+
+            let delete_btn = document.createElement("button");
+            delete_btn.className = "btn btn-danger float-end delete";
+            delete_btn.style = "margin-left: 5px;";
+            delete_btn.appendChild(document.createTextNode("X"));
+
+            li.appendChild(delete_btn);
+
+            let move_btn = document.createElement("button");
+            move_btn.className = "btn btn-success float-end move";
+            move_btn.style = "margin-left: 5px;";
+            const checkmarkSymbol = '\u2713';
+            move_btn.appendChild(document.createTextNode(checkmarkSymbol));
+
+            li.appendChild(move_btn);
+            ul_toDoremains.appendChild(li);
+        })
+}
+
+async function loaddata() {
+    const response = await axios.get("http://localhost:3000/getremainingtask");
+        const tasklist = response.data;
+        tasklist.forEach((task)=>{
+            let li = document.createElement("li");
+            li.className = "list-group-item";
+            li.appendChild(
+                document.createTextNode(`Task is ${task.name}. Description of the task is ${task.description}.`)
+            );
+            li.setAttribute("dataid", `${task.id}`);
+
+            let delete_btn = document.createElement("button");
+            delete_btn.className = "btn btn-danger float-end delete";
+            delete_btn.style = "margin-left: 5px;";
+            delete_btn.appendChild(document.createTextNode("X"));
+
+            li.appendChild(delete_btn);
+
+            let move_btn = document.createElement("button");
+            move_btn.className = "btn btn-success float-end move";
+            move_btn.style = "margin-left: 5px;";
+            const checkmarkSymbol = '\u2713';
+            move_btn.appendChild(document.createTextNode(checkmarkSymbol));
+
+            li.appendChild(move_btn);
+            ul_toDoremains.appendChild(li);
+        })
+
+        const completedtaskresponse = await axios.get("http://localhost:3000/getcompletedtask");
+    const completedtasklist = completedtaskresponse.data;
+    ul_toDocompleted.innerHTML = "";
+    completedtasklist.forEach((task)=>{
+        let li = document.createElement("li");
+        li.className = "list-group-item";
+        li.appendChild(
+            document.createTextNode(`Task is ${task.name}. Description of the task is ${task.description}.`)
+        );
+        li.setAttribute("dataid", `${task.id}`);
+        let delete_btn = document.createElement("button");
+        delete_btn.className = "btn btn-danger float-end delete";
+        delete_btn.style = "margin-left: 5px;";
+        delete_btn.appendChild(document.createTextNode("X"));
+
+        li.appendChild(delete_btn);
+        ul_toDocompleted.appendChild(li);
+        })
+}
+
+
+async function movedata() {
+    if (event.target.classList.contains("move")) {
+        try {
+            let parent_li = event.target.parentNode;
+            let name = parent_li.firstChild.textContent.split(" is ")[1].split(".")[0];
+            let description = parent_li.firstChild.textContent.split(" is ")[2].split(".")[0];
+            let id = event.target.parentNode.getAttribute("dataid");
+            addintocompleted(name, description);
+            ul_toDoremains.removeChild(parent_li);
+            await axios.delete(`http://localhost:3000/delettetask/${id}`);
+        } catch {
+            alert("ERROR: Not able to transfer the data.");
+        }
+    }
+}
+
+// Add completed task to the completed task list
+async function addintocompleted(name, discrp) {
+    let data = {
+        name,
+        discrp
+    };
+
+    const completedtaskresponse = await axios.post("http://localhost:3000/taskcompletedlist", data);
+    const completedtasklist = completedtaskresponse.data;
+    ul_toDocompleted.innerHTML = "";
+    completedtasklist.forEach((task)=>{
+        let li = document.createElement("li");
+        li.className = "list-group-item";
+        li.appendChild(
+            document.createTextNode(`Task is ${task.name}. Description of the task is ${task.description}.`)
+        );
+        li.setAttribute("dataid", `${data.id}`);
+        let delete_btn = document.createElement("button");
+        delete_btn.className = "btn btn-danger float-end delete";
+        delete_btn.style = "margin-left: 5px;";
+        delete_btn.appendChild(document.createTextNode("X"));
+
+        li.appendChild(delete_btn);
+        ul_toDocompleted.appendChild(li);
+        })
+}
+
+// Remove data from the to-do list
+async function removedata(event) {
+    if (event.target.classList.contains("delete")) {
+        try {
+            let parent_li = event.target.parentNode;
+            let data_id = parent_li.getAttribute("dataid");
+            ul_toDoremains.removeChild(parent_li);
+            await axios.delete(`http://localhost:3000/delettetask/${data_id}`);
+        } catch {
+            alert("ERROR: Not able to delete the task.");
+        }
+    }
+}
+
+async function deletetask() {
+    if (event.target.classList.contains("delete")) {
+        try {
+            let parent_li = event.target.parentNode;
+            let data_id = parent_li.getAttribute("dataid");
+            ul_toDocompleted.removeChild(parent_li);
+            await axios.delete(`http://localhost:3000/deletecompletedtask/${data_id}`);
+        } catch {
+            alert("ERROR: Not able to delete the task.");
+        }
+    }
+}
+</script>
+</body>
+</html>
